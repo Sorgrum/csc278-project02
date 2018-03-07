@@ -226,7 +226,7 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	//char *reqFile = strtok(packet[0], "HTTP");
 	//printf("%s\n", reqFile);
 	printf("%s%s%s\n", prefix,host, packet[0]);
-
+    printf("FOR ALLAH!\n");
 
 	/*
 	 * TODO: Determine size of IP header.
@@ -282,7 +282,7 @@ process_packet (u_char * thing,
 	 */
 	pointer = packet;
 	print_ether (outfile, &pointer);
-
+    printf("1\n");
 	/*
 	 * Find the pointer to the IP header.
 	 */
