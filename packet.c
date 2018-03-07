@@ -182,6 +182,8 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 {
 	struct ip ip_header;
     struct in_addr addr;
+	struct tcphdr tcp_header;
+
 	/*
 	 * After reading comments in tcpdump source code, I discovered that
 	 * the dump file does not guarantee that the IP header is aligned
@@ -194,14 +196,38 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
 	struct sockaddr_in sa;
 	sa.sin_family = AF_INET;
-    printf("%x\n", htole32(ip_header.ip_dst.s_addr));
+    //printf("%x\n", htole32(ip_header.ip_dst.s_addr));
     addr.s_addr = htole32(ip_header.ip_dst.s_addr);  
 	sa.sin_addr = addr;
-	char node[10000];
-	int res = getnameinfo((struct sockaddr*)&sa, sizeof(sa), node, sizeof(node), NULL, 0, 0);
-    printf("%s\n", node);
+	char host[10000];
+	int chexmix = getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0);
+    
 
+	*packet += sizeof (struct ip);
+
+	bcopy (*packet, &tcp_header, sizeof (struct tcphdr));
+
+	char *prefix;
+
+	if (tcp_header.dest == 443){
+		prefix = "https://";
+	}else{
+		prefix = "http://";
+	}
+
+
+	*packet += sizeof (struct tcphdr);
+	*packet += 16;
 	
+
+	char *hold;
+	hold = strchr(packet[0],' ');   //Get the pointer to char token
+	*hold = '\0';   
+	//char *reqFile = strtok(packet[0], "HTTP");
+	//printf("%s\n", reqFile);
+	printf("%s%s%s\n", prefix,host, packet[0]);
+
+
 	/*
 	 * TODO: Determine size of IP header.
 	 */
