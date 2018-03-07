@@ -3,3 +3,4 @@ Makefile
 libpcap.a
 libpcap
 httpfilter.h
+webspy
