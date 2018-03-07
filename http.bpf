@@ -20,37 +20,16 @@ STRUCT HTTPFilter
             # Make sure we're working with a TCP or UDP packet
             LDAB 23
 %tcp        BEQ 0x0600, %accept, %udp 
-%udp        BEQ 0x1100, %accept, %get
+%udp        BEQ 0x1100, %accept, %http
 
-            # Check the request type to make sure its HTTP(S)
-%get        LDAW 66
-            BEQ 0x47455420, %accept, %put
-%put        BEQ 0x50555420, %accept, %post
-%post       BEQ 0x504f5354, %accept, %head
-%head       BEQ 0x48454144, %accept, %trace
-
-%trace      BEQ 0x54524143, %trace2, %delete
-%trace2     LDAH 70
-            BEQ 0x4520, %accept, %delete
-
-%delete     LDAW 66
-            BEQ 0x44454c45, %delete2, %options
-%delete2    LDAH 70
-            BEQ 0x5445, %accept, %options
-
-%options    LDAW 66
-            BEQ 0x4f505449, %options2, %connect
-%options2   LDAW 70
-            BEQ 0x4f4e5320, %accept, %connect
-
-%connect    LDAW 66
-            BEQ 0x434f4e4e, %connect2, %reject
-%connect2   LDAW 70
-            BEQ 0x45435420, %accept, %reject
-
-
+            # Make sure we're working with http on port 80 or
+            # https on port 443
+            LDAH 36
+%http       BEQ 0x0050, %accept, %https
+%https      BEQ 0x01BB, %accept, %reject
 
 %accept     RET [(unsigned int)(-1)]
+
 %reject     RET 0
             END
           
