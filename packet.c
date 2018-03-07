@@ -48,6 +48,10 @@ FILE * outfile;
  */
 void process_packet (u_char *, const struct pcap_pkthdr *, const u_char *);
 
+int getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+                       char *host, socklen_t hostlen,
+                       char *serv, socklen_t servlen, int flags);
+
 /*
  * Function: init_pcap ()
  *
@@ -98,6 +102,8 @@ print_ether (FILE * outfile, const unsigned char ** packet)
 	struct ether_header header;
 	int index;
 
+	struct sockaddr_in sa;
+
 	/*
 	 * Align the data by copying it into a Ethernet header structure.
 	 */
@@ -117,6 +123,7 @@ print_ether (FILE * outfile, const unsigned char ** packet)
 	fprintf (outfile, "Destination Address:\t");
 	for (index=0; index < ETHER_ADDR_LEN; index++)
 	{
+	
 		fprintf (outfile, "%x", header.ether_dhost[index]);
 	}
 	fprintf (outfile, "\n");
@@ -185,6 +192,15 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	 */
 	bcopy (*packet, &ip_header, sizeof (struct ip));
 
+	struct sockaddr_in sa;
+	sa.sin_family = AF_INET;
+	//inet_pton(AF_INET, "173.199.123.106", &sa.sin_addr);
+	sa.sin_addr = htole32(ip_header.ip_dst); 
+	char node[10000];
+	int res = getnameinfo((struct sockaddr*)&sa, sizeof(sa), node, sizeof(node), NULL, 0, 0);
+    printf("%s\n", node);
+
+	
 	/*
 	 * TODO: Determine size of IP header.
 	 */

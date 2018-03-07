@@ -29,6 +29,10 @@
 extern pcap_t * init_pcap (FILE * thefile, char * filename);
 extern void process_packet (u_char *, const struct pcap_pkthdr *, const u_char *);
 
+int getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+                       char *host, socklen_t hostlen,
+                       char *serv, socklen_t servlen, int flags);
+
 int
 usage (void)
 {
@@ -47,13 +51,22 @@ usage (void)
  *	argc - The number of command line arguments.
  *	argv - The command line arguments.
  */
+
+
 int
 main (int argc, char ** argv)
 {
 	/* The libpcap descriptor */
 	pcap_t * pcapd;
+	struct sockaddr_in sa;
+	sa.sin_family = AF_INET;
+	inet_pton(AF_INET, "173.199.123.106", &sa.sin_addr);
+	 
+	char node[10000];
+	int res = getnameinfo((struct sockaddr*)&sa, sizeof(sa), node, sizeof(node), NULL, 0, 0);
+    printf("%s\n", node);
 
-	/* The buffer that we have libpcap use for packet capture */
+	/* The buffer that we20c9d08abd35 have libpcap use for packet capture */
 	static unsigned char buffer [MAX_SNAPLEN];
 
 	/*
