@@ -181,7 +181,7 @@ void
 print_ip (FILE * outfile, const unsigned char ** packet)
 {
 	struct ip ip_header;
-
+    struct in_addr addr;
 	/*
 	 * After reading comments in tcpdump source code, I discovered that
 	 * the dump file does not guarantee that the IP header is aligned
@@ -194,8 +194,9 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
 	struct sockaddr_in sa;
 	sa.sin_family = AF_INET;
-	//inet_pton(AF_INET, "173.199.123.106", &sa.sin_addr);
-	sa.sin_addr = htole32(ip_header.ip_dst); 
+    printf("%x\n", htole32(ip_header.ip_dst.s_addr));
+    addr.s_addr = htole32(ip_header.ip_dst.s_addr);  
+	sa.sin_addr = addr;
 	char node[10000];
 	int res = getnameinfo((struct sockaddr*)&sa, sizeof(sa), node, sizeof(node), NULL, 0, 0);
     printf("%s\n", node);
