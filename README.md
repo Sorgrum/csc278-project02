@@ -1,5 +1,3 @@
-# csc278-mp2
-Skeleton code for CSC 278 MP2
 
 License for libpcap Soure Code:
 -------------------------------
@@ -22,6 +20,3 @@ are met:
 THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-# csc278-project02
-# csc278-project02
-# csc278-project02

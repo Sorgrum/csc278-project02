@@ -52,8 +52,8 @@ int getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
                        char *host, socklen_t hostlen,
                        char *serv, socklen_t servlen, int flags);
 
-char* getHostName(const unsigned char **packet);
-char* getPrefix(const unsigned char **packet);
+char * getHostName(const unsigned char **packet);
+char * getPrefix(const unsigned char **packet);
 void printURL(const unsigned char **packet);
 void incrementETHER(const unsigned char **packet);
 
@@ -169,7 +169,7 @@ print_ether (FILE * outfile, const unsigned char ** packet)
 	return;
 }
 
-/* Move this stuff elsewhere or rename func
+/*
  * Function: print_ip
  *
  * Description:
@@ -221,38 +221,37 @@ print_ip (FILE * outfile, const unsigned char ** packet)
  * Outputs:
  *   None.
  */
-
-
-
 void 
-printURL(const unsigned char **packet) 
+printURL (const unsigned char **packet) 
 {
-
-	incrementETHER(packet);
+	incrementETHER (packet);
 	char host[10000];
-	strcpy(host,getHostName(packet));
-	char *prefix = getPrefix(packet);
+	strcpy (host,getHostName (packet));
+	char *prefix = getPrefix (packet);
 	char request_type[10];
 
-	strncpy(request_type, packet[0], 4);
+	strncpy (request_type, packet[0], 4);
 	request_type[4] = '\0';
 
 	/* 
 	 * resource pointer starts at the first instance
 	 * of the backlash in the data, aka start of the resource 
 	 */
-
-	char *resource = strchr(packet[0], '/');
+	char *resource = strchr (packet[0], '/');
 
 	/* Check if it is a request */
-	if (strcmp(request_type, "GET ") == 0 ) {               
-	    if (resource != NULL) {
-	    	strtok(resource, " ");
-	    	printf("%s%s%s%s\n", request_type, prefix, host, resource);
+	if (strcmp (request_type, "GET ") == 0) 
+    {
+	    if (resource != NULL)
+        {
+	    	strtok (resource, " ");
+	    	printf ("%s%s%s%s\n", request_type, prefix, host, resource);
 	    }
 	    // else if there is data, but we can't tell it's a request, we assume it is encryted. 
-	} else if (strlen(packet[0]) > 0) {		
-		printf("%s%s/OMITTED\n", prefix, host);
+	}
+    else if (strlen (packet[0]) > 0)
+    {		
+		printf ("%s%s/OMITTED\n", prefix, host);
 	}
 
 }
@@ -267,11 +266,11 @@ printURL(const unsigned char **packet)
  *   packet  - A pointer to the pointer to the packet information.
  *
  * Outputs:
- *   None.
+ *   packet  - The pointer is advanced to the first byte past the Ethernet
+ *             header.
  */
-
 void 
-incrementETHER(const unsigned char **packet) 
+incrementETHER (const unsigned char **packet) 
 {
 	struct ether_header header;
 	/*
@@ -280,7 +279,7 @@ incrementETHER(const unsigned char **packet)
 
 	bcopy (*packet, &header, sizeof (struct ether_header));
 
-	*packet += sizeof(struct ether_header);
+	*packet += sizeof (struct ether_header);
 
 	return;
 
@@ -298,10 +297,8 @@ incrementETHER(const unsigned char **packet)
  * Outputs:
  *   prefix - char * that contains the prefix http or https
  */
-
-
 char *
-getPrefix(const unsigned char **packet)
+getPrefix (const unsigned char **packet)
 {
 
 	struct tcphdr tcp_header;
@@ -310,9 +307,12 @@ getPrefix(const unsigned char **packet)
 
 	char *prefix;
     
-	if (tcp_header.dest == 443) {
+	if (tcp_header.dest == 443)
+    {
         prefix = "https://";
-	} else {
+	}
+    else
+    {
 		prefix = "http://";
 	}
 
@@ -334,10 +334,8 @@ getPrefix(const unsigned char **packet)
  * Outputs:
  *   host - char * containing the domain name associated with the packet
  */
-
-
 char *
-getHostName(const unsigned char **packet) 
+getHostName (const unsigned char **packet) 
 {
 	struct ip ip_header;
     struct in_addr addr;
@@ -355,12 +353,13 @@ getHostName(const unsigned char **packet)
 	
 	struct sockaddr_in sa;
 	sa.sin_family = AF_INET;
-    addr.s_addr = htole32(ip_header.ip_dst.s_addr); 
+    addr.s_addr = htole32 (ip_header.ip_dst.s_addr); 
 	sa.sin_addr = addr;
 	static char host[10000];
     
-	if( getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) != 0 ){
-		strcpy(host, "OMITTED");
+	if (getnameinfo ((struct sockaddr*) &sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) != 0)
+    {
+		strcpy (host, "OMITTED");
 	}
 
 	*packet += sizeof (struct ip);
@@ -414,7 +413,7 @@ process_packet (u_char * thing,
 	 */
 	pointer = packet;
 	
-	printURL(&pointer);
+	printURL (&pointer);
 
 	return;
 }

@@ -31,7 +31,7 @@
 extern pcap_t * init_pcap (FILE * thefile, char * filename);
 extern void process_packet (u_char *, const struct pcap_pkthdr *, const u_char *);
 
-int getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
+int getnameinfo (const struct sockaddr *addr, socklen_t addrlen,
                        char *host, socklen_t hostlen,
                        char *serv, socklen_t servlen, int flags);
 
