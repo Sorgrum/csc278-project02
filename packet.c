@@ -226,12 +226,21 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
     strncpy(request_type, packet[0], 4);
     request_type[4] = '\0';
+    
+    int omit = 1; //boolean for omit tag. Dunno yet when to use it. Default to true fn. 
 
     /* Check if it is a GET request */
     if (strcmp(request_type, "GET ") == 0) {
-        printf("GET %s\n", host);
+        //printf("GET %s\n", host);
+        char *resource = strchr(packet[0], '/');
+        if ( resource != NULL ) {
+			strtok(resource, " ");
+			printf("This is the hacking result: %s%s%s\n", prefix, host, resource);
+		} else if( omit ) {
+			printf("This is the hacking result: %s%s/OMITTED\n", prefix, host);
+	}
 
-    } 
+    }
 	/*
 	 * TODO: Determine size of IP header.
 	 */
@@ -240,7 +249,7 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	 * Return indicating no errors.
 	 */
 	return;
-}
+}		
 
 /*
  * Function: process_packet ()
