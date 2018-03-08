@@ -112,43 +112,43 @@ print_ether (FILE * outfile, const unsigned char ** packet)
 	/*
 	 * Print out the Ethernet information.
 	 */
-	fprintf (outfile, "================= ETHERNET HEADER ==============\n");
-	fprintf (outfile, "Source Address:\t\t");
+	//fprintf (outfile, "================= ETHERNET HEADER ==============\n");
+	//fprintf (outfile, "Source Address:\t\t");
 	for (index=0; index < ETHER_ADDR_LEN; index++)
 	{
-		fprintf (outfile, "%x", header.ether_shost[index]);
+		//fprintf (outfile, "%x", header.ether_shost[index]);
 	}
-	fprintf (outfile, "\n");
+	//fprintf (outfile, "\n");
 
-	fprintf (outfile, "Destination Address:\t");
+	//fprintf (outfile, "Destination Address:\t");
 	for (index=0; index < ETHER_ADDR_LEN; index++)
 	{
 	
-		fprintf (outfile, "%x", header.ether_dhost[index]);
+		//fprintf (outfile, "%x", header.ether_dhost[index]);
 	}
-	fprintf (outfile, "\n");
+	//fprintf (outfile, "\n");
 
-	fprintf (outfile, "Protocol Type:\t\t");
+	//fprintf (outfile, "Protocol Type:\t\t");
 	switch (ntohs(header.ether_type))
 	{
 		case ETHERTYPE_PUP:
-			fprintf (outfile, "PUP Protocol\n");
+			//fprintf (outfile, "PUP Protocol\n");
 			break;
 
 		case ETHERTYPE_IP:
-			fprintf (outfile, "IP Protocol\n");
+			//fprintf (outfile, "IP Protocol\n");
 			break;
 
 		case ETHERTYPE_ARP:
-			fprintf (outfile, "ARP Protocol\n");
+			//fprintf (outfile, "ARP Protocol\n");
 			break;
 
 		case ETHERTYPE_REVARP:
-			fprintf (outfile, "RARP Protocol\n");
+			//fprintf (outfile, "RARP Protocol\n");
 			break;
 
 		default:
-			fprintf (outfile, "Unknown Protocol: %x\n", header.ether_type);
+			//fprintf (outfile, "Unknown Protocol: %x\n", header.ether_type);
 			break;
 	}
 
@@ -196,7 +196,7 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
 	struct sockaddr_in sa;
 	sa.sin_family = AF_INET;
-    printf("%x\n", htole32(ip_header.ip_dst.s_addr));
+    //printf("%x\n", htole32(ip_header.ip_dst.s_addr));
     addr.s_addr = htole32(ip_header.ip_dst.s_addr);  
     //printf("addr.s_addr: %x\n", addr.s_addr);
 	sa.sin_addr = addr;
@@ -222,12 +222,19 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	//*packet += sizeof (struct tcphdr);
     *packet += tcp_header.th_off * 4;
     
-    printf("host: %s\n", host);
-    printf("packet data: %s\n", packet[0]);
+    char request_type[10];
+
+
+    strncpy(request_type, packet[0], 4);
+    request_type[4] = '\0';
+
+    /* Check if it is a GET request */
+    if (strcmp(request_type, "GET ") == 0) {
+        printf("GET %s\n", host);
+
+    } 
 	//char *hold;
 	//strtok(packet[0], " ");   //Get the pointer to char token
-	//char *reqFile = strtok(packet[0], "HTTP");
-	//printf("%s\n", reqFile);
 	//printf("%s%s%s\n", prefix, host, packet[0]);
 
 	/*
