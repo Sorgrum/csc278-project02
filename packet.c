@@ -222,14 +222,18 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	//*packet += sizeof (struct tcphdr);
     *packet += tcp_header.th_off * 4;
     
-    printf("host: %s\n", host);
-    printf("packet data: %s\n", packet[0]);
-	//char *hold;
-	//strtok(packet[0], " ");   //Get the pointer to char token
-	//char *reqFile = strtok(packet[0], "HTTP");
-	//printf("%s\n", reqFile);
-	//printf("%s%s%s\n", prefix, host, packet[0]);
+    // printf("host: %s\n", host);
+    // printf("packet data: %s\n", packet[0]);
 
+	char *resource = strchr(packet[0], '/');
+
+	if ( resource != NULL ) {
+		strtok(resource, " ");
+		printf("This is the hacking result: %s%s%s\n", prefix, host, resource);
+	} else {
+		printf("This is the hacking result: %s%s/OMITTED\n", prefix, host);
+	}
+ 
 	/*
 	 * TODO: Determine size of IP header.
 	 */
