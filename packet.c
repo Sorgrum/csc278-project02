@@ -224,7 +224,6 @@ print_ip (FILE * outfile, const unsigned char ** packet)
     
     char request_type[10];
 
-
     strncpy(request_type, packet[0], 4);
     request_type[4] = '\0';
 
@@ -233,10 +232,6 @@ print_ip (FILE * outfile, const unsigned char ** packet)
         printf("GET %s\n", host);
 
     } 
-	//char *hold;
-	//strtok(packet[0], " ");   //Get the pointer to char token
-	//printf("%s%s%s\n", prefix, host, packet[0]);
-
 	/*
 	 * TODO: Determine size of IP header.
 	 */
