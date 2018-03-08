@@ -52,6 +52,12 @@ int getnameinfo(const struct sockaddr *addr, socklen_t addrlen,
                        char *host, socklen_t hostlen,
                        char *serv, socklen_t servlen, int flags);
 
+char* getHostName(const unsigned char **packet);
+char* getPrefix(const unsigned char **packet);
+void printURL(const unsigned char **packet);
+void incrementETHER(const unsigned char **packet);
+
+
 /*
  * Function: init_pcap ()
  *
@@ -181,9 +187,7 @@ void
 print_ip (FILE * outfile, const unsigned char ** packet)
 {
 	struct ip ip_header;
-    struct in_addr addr;
-	struct tcphdr tcp_header;
-
+    
 	/*
 	 * After reading comments in tcpdump source code, I discovered that
 	 * the dump file does not guarantee that the IP header is aligned
@@ -195,23 +199,116 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
 	bcopy (*packet, &ip_header, sizeof (struct ip));
 
-	
-	struct sockaddr_in sa;
-	sa.sin_family = AF_INET;
-    addr.s_addr = htole32(ip_header.ip_dst.s_addr); 
-	sa.sin_addr = addr;
+	/*
+	 * TODO: Print ip header
+	 */
+
+	return;
+}		
+
+
+
+
+/* 
+ * Function: printURL
+ *
+ * Description:
+ *   Prints URL obtained from packet.
+ *
+ * Inputs:
+ *   packet  - A pointer to the pointer to the packet information.
+ *
+ * Outputs:
+ *   None.
+ */
+
+
+
+void 
+printURL(const unsigned char **packet) 
+{
+
+	incrementETHER(packet);
 	char host[10000];
-    
-	if( getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) != 0 ){
-		strcpy(host, "OMITTED");
+	strcpy(host,getHostName(packet));
+	char *prefix = getPrefix(packet);
+	char request_type[10];
+
+	strncpy(request_type, packet[0], 4);
+	request_type[4] = '\0';
+
+	/* 
+	 * resource pointer starts at the first instance
+	 * of the backlash in the data, aka start of the resource 
+	 */
+
+	char *resource = strchr(packet[0], '/');
+
+	/* Check if it is a request */
+	if (strcmp(request_type, "GET ") == 0 ) {               
+	    if (resource != NULL) {
+	    	strtok(resource, " ");
+	    	printf("%s%s%s%s\n", request_type, prefix, host, resource);
+	    }
+	    // else if there is data, but we can't tell it's a request, we assume it is encryted. 
+	} else if (strlen(packet[0]) > 0) {		
+		printf("%s%s/OMITTED\n", prefix, host);
 	}
 
-	*packet += sizeof (struct ip);
+}
 
+/* 
+ * Function: incrementEther
+ *
+ * Description:
+ *   increments our packet past the ethernet header.
+ *
+ * Inputs:
+ *   packet  - A pointer to the pointer to the packet information.
+ *
+ * Outputs:
+ *   None.
+ */
+
+void 
+incrementETHER(const unsigned char **packet) 
+{
+	struct ether_header header;
+	/*
+	 * Align the data by copying it into a Ethernet header structure.
+	 */
+
+	bcopy (*packet, &header, sizeof (struct ether_header));
+
+	*packet += sizeof(struct ether_header);
+
+	return;
+
+}
+
+/* 
+ * Function: getHTTPtype
+ *
+ * Description:
+ *   Get's http prefix from the tcp header and moves packet pointer so we can access data. 
+ *
+ * Inputs:
+ *   packet  - A pointer to the pointer to the packet information.
+ *
+ * Outputs:
+ *   prefix - char * that contains the prefix http or https
+ */
+
+
+char *
+getPrefix(const unsigned char **packet)
+{
+
+	struct tcphdr tcp_header;
+	
 	bcopy (*packet, &tcp_header, sizeof (struct tcphdr));
 
 	char *prefix;
-
     
 	if (tcp_header.dest == 443) {
         prefix = "https://";
@@ -221,35 +318,57 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 
     *packet += tcp_header.th_off * 4;
     
-    char request_type[10];
+    return prefix;
 
-    strncpy(request_type, packet[0], 4);
-    request_type[4] = '\0';
+}
 
-    /* resource pointer starts at the first instance
-     * of / in the data */
-    
-    char *resource = strchr(packet[0], '/');
+/* 
+ * Function: getHostname
+ *
+ * Description:
+ *   Get's ip address from ip header and uses that to obtain a hostname/domain name
+ *
+ * Inputs:
+ *   packet  - A pointer to the pointer to the packet information.
+ *
+ * Outputs:
+ *   host - char * containing the domain name associated with the packet
+ */
 
-    /* Check if it is a request */
-    if (strcmp(request_type, "GET ") == 0 ) {               
-        if (resource != NULL) {
-        	strtok(resource, " ");
-        	printf("%s%s%s%s\n", request_type, prefix, host, resource);
-        }
-        // else if there is data, but we can't tell it's a request, we assume it is encryted. 
-	} else if (strlen(packet[0]) > 0) {		
-		printf("%s%s/OMITTED\n", prefix, host);
-	}
 
-	// if neither case, then the data section is empty so ignore it
+char *
+getHostName(const unsigned char **packet) 
+{
+	struct ip ip_header;
+    struct in_addr addr;
 
 	/*
-	 * Return indicating no errors.
+	 * After reading comments in tcpdump source code, I discovered that
+	 * the dump file does not guarantee that the IP header is aligned
+	 * on a word boundary.
+	 *
+	 * This is apparently what's causing me problems, so I will word align
+	 * it just like tcpdump does.
 	 */
 
-	return;
-}		
+	bcopy (*packet, &ip_header, sizeof (struct ip));
+	
+	struct sockaddr_in sa;
+	sa.sin_family = AF_INET;
+    addr.s_addr = htole32(ip_header.ip_dst.s_addr); 
+	sa.sin_addr = addr;
+	static char host[10000];
+    
+	if( getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) != 0 ){
+		strcpy(host, "OMITTED");
+	}
+
+	*packet += sizeof (struct ip);
+
+	return host;
+
+}
+
 
 /*
  * Function: process_packet ()
@@ -291,13 +410,11 @@ process_packet (u_char * thing,
 	}
 
 	/*
-	 * Print the Ethernet Header
+	 * Print the URL
 	 */
 	pointer = packet;
-	print_ether (outfile, &pointer);
-	/*
-	 * Find the pointer to the IP header.
-	 */
-	print_ip (outfile, &pointer);
+	
+	printURL(&pointer);
+
 	return;
 }

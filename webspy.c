@@ -1,12 +1,14 @@
 /*
  * Webspy
  *
- * AUTHOR:	You!
+ * AUTHOR:	Marcelo Gheiler && Vasim Patel
  *
  * FILE:	webspy.c
  *
  * PURPOSE:	This file contains the functions that start up the webspy
  *		program.
+ * 
+ * NOTE: File is untouched, our work was done in packet.c 
  */
 
 #include <stdio.h>
@@ -58,13 +60,6 @@ main (int argc, char ** argv)
 {
 	/* The libpcap descriptor */
 	pcap_t * pcapd;
-	// struct sockaddr_in sa;
-	// sa.sin_family = AF_INET;
-	// inet_pton(AF_INET, "173.199.123.106", &sa.sin_addr);
-	 
-	// char node[10000];
-	// int res = getnameinfo((struct sockaddr*)&sa, sizeof(sa), node, sizeof(node), NULL, 0, 0);
- //    printf("%s\n", node);
 
 	/* The buffer that we20c9d08abd35 have libpcap use for packet capture */
 	static unsigned char buffer [MAX_SNAPLEN];
