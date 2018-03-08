@@ -163,7 +163,7 @@ print_ether (FILE * outfile, const unsigned char ** packet)
 	return;
 }
 
-/*
+/* Move this stuff elsewhere or rename func
  * Function: print_ip
  *
  * Description:
@@ -192,19 +192,19 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 	 * This is apparently what's causing me problems, so I will word align
 	 * it just like tcpdump does.
 	 */
+
 	bcopy (*packet, &ip_header, sizeof (struct ip));
 
+	
 	struct sockaddr_in sa;
 	sa.sin_family = AF_INET;
-    //printf("%x\n", htole32(ip_header.ip_dst.s_addr));
-    addr.s_addr = htole32(ip_header.ip_dst.s_addr);  
-    //printf("addr.s_addr: %x\n", addr.s_addr);
+    addr.s_addr = htole32(ip_header.ip_dst.s_addr); 
 	sa.sin_addr = addr;
 	char host[10000];
-	int chexmix = getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0);
     
-
-    //printf("sizeof (struct ip): %d\n", sizeof (struct ip));
+	if( getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), NULL, 0, 0) != 0 ){
+		strcpy(host, "OMITTED");
+	}
 
 	*packet += sizeof (struct ip);
 
@@ -219,35 +219,35 @@ print_ip (FILE * outfile, const unsigned char ** packet)
 		prefix = "http://";
 	}
 
-	//*packet += sizeof (struct tcphdr);
     *packet += tcp_header.th_off * 4;
     
     char request_type[10];
 
     strncpy(request_type, packet[0], 4);
     request_type[4] = '\0';
-    
-    int omit = 1; //boolean for omit tag. Dunno yet when to use it. Default to true fn. 
 
-    /* Check if it is a GET request */
-    if (strcmp(request_type, "GET ") == 0) {
-        //printf("GET %s\n", host);
-        char *resource = strchr(packet[0], '/');
-        if ( resource != NULL ) {
-			strtok(resource, " ");
-			printf("This is the hacking result: %s%s%s\n", prefix, host, resource);
-		} else if( omit ) {
-			printf("This is the hacking result: %s%s/OMITTED\n", prefix, host);
+    /* resource pointer starts at the first instance
+     * of / in the data */
+    
+    char *resource = strchr(packet[0], '/');
+
+    /* Check if it is a request */
+    if (strcmp(request_type, "GET ") == 0 ) {               
+        if (resource != NULL) {
+        	strtok(resource, " ");
+        	printf("%s%s%s%s\n", request_type, prefix, host, resource);
+        }
+        // else if there is data, but we can't tell it's a request, we assume it is encryted. 
+	} else if (strlen(packet[0]) > 0) {		
+		printf("%s%s/OMITTED\n", prefix, host);
 	}
 
-    }
-	/*
-	 * TODO: Determine size of IP header.
-	 */
+	// if neither case, then the data section is empty so ignore it
 
 	/*
 	 * Return indicating no errors.
 	 */
+
 	return;
 }		
 
@@ -277,10 +277,10 @@ process_packet (u_char * thing,
                 const u_char * packet)
 {
 	/* Determine where the IP Header is */
-	const unsigned char *		pointer;
+	const unsigned char *pointer;
 
 	/* Length of the data */
-	long		packet_length;
+	long packet_length;
 
 	/*
 	 * Filter the packet using our BPF filter.
